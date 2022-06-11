@@ -1,8 +1,9 @@
-import { AXIOS } from "..";
+import { AXIOS } from '..';
+import { Player } from '../../types/player';
 
 class FixtureService {
   async addPlayer(name: string) {
-    return AXIOS.post("/player", {
+    return AXIOS.post('/player', {
       players: [
         {
           name,
@@ -20,12 +21,22 @@ class FixtureService {
     });
   }
 
+  async assignPlayersToMatch(matchId: string, players: Player[]) {
+    return AXIOS.post('/fixture/match/assign', {
+      matchId,
+      players: players.map((p) => ({
+        id: p.id,
+        side: '',
+      })),
+    });
+  }
+
   async startMatch(id: string) {
-    return AXIOS.post(`/fixture/match/start/${id}`)
+    return AXIOS.post(`/fixture/match/start/${id}`);
   }
 
   async endtMatch(id: string) {
-    return AXIOS.post(`/fixture/match/end/${id}`)
+    return AXIOS.post(`/fixture/match/end/${id}`);
   }
 }
 

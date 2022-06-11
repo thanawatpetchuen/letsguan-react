@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import Home from './Route/Home'
+import { NextUIProvider } from "@nextui-org/react";
+import Home from "./Route/Home";
 
 function App() {
-
   return (
-    <div className="App">
-      <Home />
-    </div>
-  )
+    <NextUIProvider>
+      <div className="App">
+        <Home />
+      </div>
+    </NextUIProvider>
+  );
 }
 
-export default App
+export default App;
