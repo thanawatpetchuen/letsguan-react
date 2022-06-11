@@ -5,9 +5,7 @@ import Home from './Route/Home';
 function App() {
   return (
     <NextUIProvider>
-      <div className='App'>
-        <Home />
-      </div>
+      <Home />
       <Toaster />
     </NextUIProvider>
   );
