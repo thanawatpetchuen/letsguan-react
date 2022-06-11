@@ -1,7 +1,7 @@
-import useSWR from "swr";
-import { getFetcher } from ".";
-import { fixture } from "../types";
-import fixtureService from "./fixture";
+import useSWR from 'swr';
+import { getFetcher } from '.';
+import { fixture } from '../types';
+import fixtureService from './fixture';
 
 export const useFixture = () => {
   const { data, error, mutate } = useSWR<fixture.Fixture>(`/fixture`, getFetcher);
@@ -11,18 +11,18 @@ export const useFixture = () => {
     isLoading: !error && !data,
     isError: error,
     service: fixtureService,
-    mutate
+    mutate,
   };
 };
 
 export const useCourtStatuses = () => {
-    const { data, error, mutate } = useSWR<fixture.CourtStatuses>(`/fixture/court`, getFetcher);
-  
-    return {
-      data,
-      isLoading: !error && !data,
-      isError: error,
-      service: fixtureService,
-      mutate
-    };
+  const { data, error, mutate } = useSWR<fixture.CourtStatuses>(`/fixture/court`, getFetcher);
+
+  return {
+    data,
+    isLoading: !error && !data,
+    isError: error,
+    service: fixtureService,
+    mutate,
   };
+};

@@ -1,12 +1,14 @@
-import { NextUIProvider } from "@nextui-org/react";
-import Home from "./Route/Home";
+import { NextUIProvider } from '@nextui-org/react';
+import { Toaster } from 'react-hot-toast';
+import Home from './Route/Home';
 
 function App() {
   return (
     <NextUIProvider>
-      <div className="App">
+      <div className='App'>
         <Home />
       </div>
+      <Toaster />
     </NextUIProvider>
   );
 }

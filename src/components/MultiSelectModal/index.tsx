@@ -49,43 +49,49 @@ const MultiSelectModal = <T extends object>({
   );
 
   return (
-    <Modal closeButton aria-labelledby='modal-title' open={visible} onClose={() => closeHandler()}>
+    <Modal
+      blur
+      closeButton
+      aria-labelledby='modal-title'
+      open={visible}
+      onClose={() => closeHandler()}
+    >
       <Modal.Header>
         <Text id='modal-title' size={18}>
           {title}
         </Text>
       </Modal.Header>
       <Modal.Body>
-        <Grid.Container gap={0}>
+        <Grid.Container gap={1} css={{ maxHeight: 300, p: 0 }}>
           {data.map((e, i) => (
-            <Grid key={i}>
-              <Container css={{ minWidth: 170, minHeight: 80, padding: 10 }}>
-                <Card
-                  isHoverable
-                  isPressable
-                  onClick={() => onClick(e)}
-                  variant='flat'
-                  css={{
-                    '&:hover': {
-                      background: '$colors$primary',
-                      color: 'white',
-                    },
-                    '&:hover p': {
-                      color: 'white',
-                    },
-                    background: isActive(e) ? '$colors$primary' : '',
-                    '& p': {
-                      color: isActive(e) ? 'white' : '',
-                    },
-                  }}
-                >
-                  <Card.Body>
-                    <Text weight='bold' css={{ textAlign: 'center' }} color='black'>
-                      {textSelector(e)}
-                    </Text>
-                  </Card.Body>
-                </Card>
-              </Container>
+            <Grid key={i} css={{ minWidth: '50%' }}>
+              <Card
+                isHoverable
+                isPressable
+                onClick={() => onClick(e)}
+                variant='flat'
+                css={{
+                  '&:hover': {
+                    background: '$colors$primary',
+                    color: 'white',
+                  },
+                  '&:hover p': {
+                    color: 'white',
+                  },
+                  background: isActive(e) ? '$colors$primary' : '',
+                  '& p': {
+                    color: isActive(e) ? 'white' : '',
+                  },
+                }}
+              >
+                <Card.Body>
+                  <Text weight='bold' css={{ textAlign: 'center' }} color='black'>
+                    {textSelector(e)}
+                  </Text>
+                </Card.Body>
+              </Card>
+              {/* <Container css={{ minWidth: 150, minHeight: 80 }}>
+              </Container> */}
             </Grid>
           ))}
         </Grid.Container>

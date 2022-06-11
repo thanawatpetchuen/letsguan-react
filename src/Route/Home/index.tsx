@@ -2,27 +2,30 @@ import { Button, Card, Col, Container, Row, Spacer, Table, Text, Tooltip } from 
 import React, { useCallback, useMemo, useState } from 'react';
 import { FaPlus, FaUserEdit, FaPlay, FaStop } from 'react-icons/fa';
 import { useCourtStatuses, useFixture } from '../../api/hook';
+import CourtModal from '../../components/CourtModal';
 import { IconButton } from '../../components/IconButton';
 import MultiSelectModal from '../../components/MultiSelectModal';
+import PlayerModal from '../../components/PlayerModal';
 import SelectModal from '../../components/SelectModal';
 import { fixture, player } from '../../types';
-import { Court, getStatus, Match } from '../../types/fixture';
+import { Court, getStatus, Match, StatusENUM } from '../../types/fixture';
+import { Player } from '../../types/player';
 import { totalTime } from '../../utils/time';
 
 const Home: React.FC = () => {
   const { data, service, mutate } = useFixture();
   const { data: courtStatus, mutate: mutateCourtStatus } = useCourtStatuses();
+
   const [visible, setVisible] = useState(false);
   const [selectPlayerVisible, setSelectPlayerVisible] = useState(false);
+  const [addPlayerVisible, setAddPlayerVisible] = useState(false);
+  const [addCourtVisible, setAddCourtVisible] = useState(false);
+
   const [selectedMatch, setSelectedMatch] = useState<Match | null>();
 
   const onClick = useCallback(async () => {
-    const name = prompt('Name?');
-    if (name) {
-      await service.addPlayer(name);
-      mutate();
-    }
-  }, [mutate, service]);
+    setAddPlayerVisible(true);
+  }, []);
 
   const onCreateMatchClick = useCallback(async () => {
     setVisible(true);
@@ -56,11 +59,31 @@ const Home: React.FC = () => {
     [mutate, selectedMatch, service],
   );
 
+  const onAddPlayerCloseHandler = useCallback(
+    async (e?: Player) => {
+      setAddPlayerVisible(false);
+      if (e) {
+        await service.addPlayer(e.name);
+        mutate();
+      }
+    },
+    [mutate, service],
+  );
+
+  const onAddCourtCloseHandler = useCallback(
+    async (e?: Court) => {
+      setAddCourtVisible(false);
+      if (e) {
+        await service.createCourt(e.name);
+        mutate();
+      }
+    },
+    [mutate, service],
+  );
+
   const onCreateCourtClick = useCallback(async () => {
-    const name = prompt('Name?') || '';
-    await service.createCourt(name);
-    mutate();
-  }, [mutate, service]);
+    setAddCourtVisible(true);
+  }, []);
 
   const onStartMatch = useCallback(
     async (id: string) => {
@@ -89,7 +112,32 @@ const Home: React.FC = () => {
   }, [data?.matches]);
 
   return (
-    <Container gap={0}>
+    <Container>
+      <SelectModal
+        title='Select Court'
+        data={data?.courts || []}
+        visible={visible}
+        closeHandler={onCloseHandler}
+        textSelector={(e) => e.name}
+      />
+      <MultiSelectModal
+        title='Select Players'
+        data={data?.players || []}
+        visible={selectPlayerVisible}
+        closeHandler={onSelectPlayerCloseHandler}
+        textSelector={(e) => e.name}
+        keySelector={(e) => e.id}
+      />
+      <PlayerModal
+        title='Add Player'
+        closeHandler={onAddPlayerCloseHandler}
+        visible={addPlayerVisible}
+      />
+      <CourtModal
+        title='Add Court'
+        closeHandler={onAddCourtCloseHandler}
+        visible={addCourtVisible}
+      />
       <Text h1>Fixture</Text>
       <Row>
         <Col span={3}>
@@ -101,8 +149,8 @@ const Home: React.FC = () => {
           <Table
             aria-label='Example table with static content'
             css={{
-              height: 'auto',
               minWidth: '100%',
+              height: 300,
             }}
           >
             <Table.Header>
@@ -153,21 +201,6 @@ const Home: React.FC = () => {
             <Text h3>Matches</Text>
             <Button shadow auto color='primary' icon={<FaPlus />} onClick={onCreateMatchClick} />
           </Row>
-          <SelectModal
-            title='Select Court'
-            data={data?.courts || []}
-            visible={visible}
-            closeHandler={onCloseHandler}
-            textSelector={(e) => e.name}
-          />
-          <MultiSelectModal
-            title='Select Players'
-            data={data?.players || []}
-            visible={selectPlayerVisible}
-            closeHandler={onSelectPlayerCloseHandler}
-            textSelector={(e) => e.name}
-            keySelector={(e) => e.id}
-          />
           <Table
             aria-label='Example table with static content'
             css={{
@@ -190,7 +223,7 @@ const Home: React.FC = () => {
                   <Table.Cell>{item.court?.name}</Table.Cell>
                   <Table.Cell>{fixture.getStatus(item)}</Table.Cell>
                   <Table.Cell>
-                    <Text>{item.players?.map(p => p.player.name).join(',')}</Text>
+                    <Text>{item.players?.map((p) => p.player.name).join(',')}</Text>
                   </Table.Cell>
                   <Table.Cell>
                     {item.startTime && new Date(item.startTime).toLocaleString()}
@@ -203,21 +236,30 @@ const Home: React.FC = () => {
                     <Row justify='space-between' align='center'>
                       <Col span={3} css={{ d: 'flex' }}>
                         <Tooltip content='Edit Players'>
-                          <IconButton onClick={() => onEditPlayer(item)}>
+                          <IconButton
+                            disabled={item.status != StatusENUM.PENDING}
+                            onClick={() => onEditPlayer(item)}
+                          >
                             <FaUserEdit size={20} fill='#979797' />
                           </IconButton>
                         </Tooltip>
                       </Col>
                       <Col span={3} css={{ d: 'flex' }}>
                         <Tooltip content='Start'>
-                          <IconButton onClick={() => onStartMatch(item.id)}>
+                          <IconButton
+                            disabled={item.status != StatusENUM.PENDING}
+                            onClick={() => onStartMatch(item.id)}
+                          >
                             <FaPlay size={20} fill='#0072F5' />
                           </IconButton>
                         </Tooltip>
                       </Col>
                       <Col span={3} css={{ d: 'flex' }}>
                         <Tooltip content='End' color='error'>
-                          <IconButton onClick={() => onEndMatch(item.id)}>
+                          <IconButton
+                            disabled={item.status != StatusENUM.RUNNING}
+                            onClick={() => onEndMatch(item.id)}
+                          >
                             <FaStop size={20} fill='#F31260' />
                           </IconButton>
                         </Tooltip>
@@ -228,40 +270,6 @@ const Home: React.FC = () => {
               )}
             </Table.Body>
           </Table>
-          {/* {data?.matches.map((m) => (
-            <Container key={m.id}>
-              <Container>
-                Match ID:{' '}
-                <Text
-                  style={{ fontWeight: 'bold', cursor: 'copy' }}
-                  onClick={() => copyToClipBoard(m.id)}
-                >
-                  {m.id}
-                </Text>
-                <Container>Status: {fixture.getStatus(m)}</Container>
-                <Container>
-                  Court: <Text onClick={() => copyToClipBoard(m.court.id)}>{m.court.id}</Text>
-                </Container>
-                <Container>
-                  <span>Players:</span>
-                  {m.players?.map((p) => (
-                    <Text key={p.player.id}>
-                      {p.player.name}({p.side}),
-                    </Text>
-                  ))}
-                </Container>
-                <Container>
-                  Start Time: {m.startTime && new Date(m.startTime).toLocaleString()}
-                </Container>
-                <Container>End Time: {m.endTime && new Date(m.endTime).toLocaleString()}</Container>
-                <Container>
-                  Total Time: {m.startTime && m.endTime && totalTime(m.startTime, m.endTime)}
-                </Container>
-                <Button onClick={() => onStartMatch(m.id)}>Start</Button>
-                <Button onClick={() => onEndMatch(m.id)}>End</Button>
-              </Container>
-            </Container>
-          ))} */}
         </Col>
       </Row>
     </Container>
